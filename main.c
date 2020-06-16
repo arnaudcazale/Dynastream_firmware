@@ -83,6 +83,9 @@
 
 #include "ble_motion.h"
 
+#define NOTIFICATION_INTERVAL           APP_TIMER_TICKS(1000)
+APP_TIMER_DEF(m_notification_timer_id);
+static uint8_t m_custom_value = 0;
 
 #define DEVICE_NAME                     "Nordic_Template"                       /**< Name of device. Will be included in the advertising data. */
 #define MANUFACTURER_NAME               "NordicSemiconductor"                   /**< Manufacturer. Will be passed to Device Information Service. */
@@ -245,6 +248,25 @@ static void pm_evt_handler(pm_evt_t const * p_evt)
     }
 }
 
+/**@brief Function for handling the Battery measurement timer timeout.
+ *
+ * @details This function will be called each time the battery level measurement timer expires.
+ *
+ * @param[in] p_context  Pointer used for passing some arbitrary information (context) from the
+ *                       app_start_timer() call to the timeout handler.
+ */
+static void notification_timeout_handler(void * p_context)
+{
+    UNUSED_PARAMETER(p_context);
+    ret_code_t err_code;
+    
+    // Increment the value of m_custom_value before nortifing it.
+    m_custom_value++;
+    
+    err_code = ble_motion_acceleration_value_update(&m_motion, m_custom_value);
+    APP_ERROR_CHECK(err_code);
+}
+
 
 /**@brief Function for the Timer initialization.
  *
@@ -257,14 +279,8 @@ static void timers_init(void)
     APP_ERROR_CHECK(err_code);
 
     // Create timers.
-
-    /* YOUR_JOB: Create any timers to be used by the application.
-                 Below is an example of how to create a timer.
-                 For every new timer needed, increase the value of the macro APP_TIMER_MAX_TIMERS by
-                 one.
-       ret_code_t err_code;
-       err_code = app_timer_create(&m_app_timer_id, APP_TIMER_MODE_REPEATED, timer_timeout_handler);
-       APP_ERROR_CHECK(err_code); */
+    err_code = app_timer_create(&m_notification_timer_id, APP_TIMER_MODE_REPEATED, notification_timeout_handler);
+    APP_ERROR_CHECK(err_code);
 }
 
 
@@ -350,12 +366,52 @@ static void on_yys_evt(ble_yy_service_t     * p_yy_service,
 }
 */
 
+/**@brief Function for handling the Custom Service Service events.
+ *
+ * @details This function will be called for all Custom Service events which are passed to
+ *          the application.
+ *
+ * @param[in]   p_cus_service  Custom Service structure.
+ * @param[in]   p_evt          Event received from the Custom Service.
+ *
+ */
+static void on_motion_evt(ble_motion_t     * p_motion_service,
+                          ble_motion_evt_t * p_evt)
+{
+    ret_code_t err_code;
+    NRF_LOG_INFO("BLE event received in main. Event type = %d\r\n", p_evt->evt_type); 
+
+    switch(p_evt->evt_type)
+    {
+        case BLE_MOTION_EVT_NOTIFICATION_ENABLED:
+          err_code = app_timer_start(m_notification_timer_id, NOTIFICATION_INTERVAL, NULL);
+          APP_ERROR_CHECK(err_code);
+            break;
+
+        case BLE_MOTION_EVT_NOTIFICATION_DISABLED:
+           err_code = app_timer_stop(m_notification_timer_id);
+           APP_ERROR_CHECK(err_code);
+            break;
+
+        case BLE_MOTION_EVT_CONNECTED:
+            break;
+
+        case BLE_MOTION_EVT_DISCONNECTED:
+              break;
+
+        default:
+              // No implementation needed.
+              break;
+    }
+}
+
 /**@brief Function for initializing services that will be used by the application.
  */
 static void services_init(void)
 {
-    ret_code_t         err_code;
-    nrf_ble_qwr_init_t qwr_init = {0};
+    ret_code_t             err_code;
+    nrf_ble_qwr_init_t     qwr_init = {0};
+    ble_motion_init_t      motion_init = {0};
 
     // Initialize Queued Write Module.
     qwr_init.error_handler = nrf_qwr_error_handler;
@@ -363,12 +419,14 @@ static void services_init(void)
     err_code = nrf_ble_qwr_init(&m_qwr, &qwr_init);
     APP_ERROR_CHECK(err_code);
 
-    ble_motion_init_t                  motion_init;
+    // Set the cus event handler
+    motion_init.evt_handler                = on_motion_evt;
 
-     // Initialize CUS Service init structure to zero.
-    memset(&motion_init, 0, sizeof(motion_init));
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&motion_init.motion_value_char_attr_md.cccd_write_perm);
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&motion_init.motion_value_char_attr_md.read_perm);
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&motion_init.motion_value_char_attr_md.write_perm);
 	
-    err_code = ble_cus_init(&m_motion, &motion_init);
+    err_code = ble_motion_init(&m_motion, &motion_init);
     APP_ERROR_CHECK(err_code);	
     
 }
