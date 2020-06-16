@@ -45,6 +45,29 @@ Output/ble_app_template_pca10040_s132\ Release/Obj/ble_motion.o: \
  ../../../../../../components/softdevice/s132/headers/ble_gap.h \
  ../../../../../../components/softdevice/s132/headers/ble_gatt.h \
  C:\Nordic\SDK\nRF5_SDK_15.0.0_a53641a\examples\ble_peripheral\ble_app_dynastream52\ble_motion.h \
+ ../../../../../../components/libraries/experimental_log/nrf_log.h \
+ ../../../../../../components/libraries/experimental_section_vars/nrf_section.h \
+ ../../../../../../components/libraries/util/nordic_common.h \
+ ../../../../../../components/libraries/strerror/nrf_strerror.h \
+ ../../../../../../components/libraries/util/sdk_errors.h \
+ ../../../../../../components/libraries/experimental_log/src/nrf_log_internal.h \
+ ../../../../../../components/libraries/experimental_log/nrf_log_instance.h \
+ ../../../../../../components/libraries/experimental_log/nrf_log_types.h \
+ ../../../../../../components/libraries/experimental_log/nrf_log_types.h \
+ ../../../../../../components/libraries/experimental_log/nrf_log_ctrl.h \
+ ../../../../../../components/libraries/experimental_log/src/nrf_log_ctrl_internal.h \
+ ../../../../../../components/libraries/experimental_log/nrf_log_backend_interface.h \
+ ../../../../../../components/libraries/experimental_memobj/nrf_memobj.h \
+ C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 4.16/include/stdlib.h \
+ ../../../../../../components/libraries/balloc/nrf_balloc.h \
+ ../../../../../../components/libraries/util/app_util_platform.h \
+ ../../../../../../components/softdevice/s132/headers/nrf_soc.h \
+ ../../../../../../components/softdevice/s132/headers/nrf_error_soc.h \
+ ../../../../../../components/softdevice/s132/headers/nrf_nvic.h \
+ ../../../../../../components/libraries/util/app_error.h \
+ C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 4.16/include/stdio.h \
+ ../../../../../../components/libraries/util/app_error_weak.h \
+ ../../../../../../components/libraries/experimental_log/nrf_log_default_backends.h \
  ../../../../../../modules/nrfx/hal/nrf_gpio.h \
  ../../../../../../modules/nrfx/nrfx.h \
  ../../../../../../integration/nrfx/nrfx_config.h \
@@ -56,25 +79,9 @@ Output/ble_app_template_pca10040_s132\ Release/Obj/ble_motion.o: \
  ../../../../../../modules/nrfx/soc/nrfx_irqs.h \
  ../../../../../../modules/nrfx/soc/nrfx_irqs_nrf52832.h \
  ../../../../../../components/libraries/util/nrf_assert.h \
- ../../../../../../components/libraries/util/nordic_common.h \
- ../../../../../../components/libraries/util/app_util_platform.h \
- ../../../../../../components/softdevice/s132/headers/nrf_soc.h \
- ../../../../../../components/softdevice/s132/headers/nrf_error_soc.h \
- ../../../../../../components/softdevice/s132/headers/nrf_nvic.h \
- ../../../../../../components/libraries/util/app_error.h \
- C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 4.16/include/stdio.h \
- ../../../../../../components/libraries/util/app_error_weak.h \
  ../../../../../../modules/nrfx/soc/nrfx_coredep.h \
- ../../../../../../components/libraries/util/sdk_errors.h \
  ../../../../../../components/libraries/util/sdk_resources.h \
  ../../../../../../components/softdevice/s132/headers/nrf_sd_def.h \
  ../../../../../../modules/nrfx/drivers/nrfx_errors.h \
  ../../../../../../components/boards/boards.h \
- ../../../../../../components/boards/pca10040.h \
- ../../../../../../components/libraries/experimental_log/nrf_log.h \
- ../../../../../../components/libraries/experimental_section_vars/nrf_section.h \
- ../../../../../../components/libraries/strerror/nrf_strerror.h \
- ../../../../../../components/libraries/experimental_log/src/nrf_log_internal.h \
- ../../../../../../components/libraries/experimental_log/nrf_log_instance.h \
- ../../../../../../components/libraries/experimental_log/nrf_log_types.h \
- ../../../../../../components/libraries/experimental_log/nrf_log_types.h
+ ../../../../../../components/boards/pca10040.h

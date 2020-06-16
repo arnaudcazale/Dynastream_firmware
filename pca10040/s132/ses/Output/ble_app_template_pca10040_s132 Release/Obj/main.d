@@ -123,4 +123,5 @@ Output/ble_app_template_pca10040_s132\ Release/Obj/main.o: \
  ../../../../../../integration/nrfx/legacy/nrf_drv_gpiote.h \
  ../../../../../../modules/nrfx/drivers/include/nrfx_gpiote.h \
  ../../../../../../modules/nrfx/hal/nrf_gpiote.h \
- ../../../../../../modules/nrfx/hal/nrf_gpio.h
+ ../../../../../../modules/nrfx/hal/nrf_gpio.h \
+ ../../../../../../components/ble/ble_radio_notification/ble_radio_notification.h

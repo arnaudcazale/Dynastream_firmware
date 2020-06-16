@@ -95,7 +95,7 @@ static uint32_t acceleration_value_char_add(ble_motion_t * p_motion, const ble_m
     attr_char_value.p_attr_md = &attr_md;
     attr_char_value.init_len  = sizeof(uint8_t);
     attr_char_value.init_offs = 0;
-    attr_char_value.max_len   = sizeof(uint8_t);
+    attr_char_value.max_len   = sizeof(uint16_t)*32*3;
 
     err_code = sd_ble_gatts_characteristic_add(p_motion->service_handle, &char_md,
                                                &attr_char_value,
@@ -179,9 +179,10 @@ static void on_write(ble_motion_t * p_motion, ble_evt_t const * p_ble_evt)
 
 void ble_motion_on_ble_evt( ble_evt_t const * p_ble_evt, void * p_context)
 {
+    ret_code_t err_code;
     ble_motion_t * p_motion = (ble_motion_t *) p_context;
 
-    NRF_LOG_INFO("BLE event received. Event type = %d\r\n", p_ble_evt->header.evt_id); 
+    //NRF_LOG_INFO("BLE event received. Event type = 0x%X\r\n", p_ble_evt->header.evt_id); 
     
     if (p_motion == NULL || p_ble_evt == NULL)
     {
@@ -202,15 +203,48 @@ void ble_motion_on_ble_evt( ble_evt_t const * p_ble_evt, void * p_context)
             on_write(p_motion, p_ble_evt);
            break;
 
+//        case BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST:
+//        {
+//            NRF_LOG_INFO("on_ble_evt: BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST - %d\r\n", p_ble_evt->evt.gatts_evt.params.exchange_mtu_request.client_rx_mtu);
+//            err_code = sd_ble_gatts_exchange_mtu_reply(p_ble_evt->evt.gatts_evt.conn_handle,
+//                                                       NRF_BLE_MAX_MTU_SIZE);
+//            APP_ERROR_CHECK(err_code);
+//
+// 
+//
+//            m_mtu.size = p_ble_evt->evt.gatts_evt.params.exchange_mtu_request.client_rx_mtu;/            err_code = ble_tcs_mtu_set(&m_tcs, &m_mtu);
+//            APP_ERROR_CHECK(err_code);
+//        }
+//        break; // BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST
+
         default:
             // No implementation needed.
             break;
     }
 }
 
-uint32_t ble_motion_acceleration_value_update(ble_motion_t * p_motion, uint8_t acceleration_value){
+uint32_t ble_motion_acceleration_value_update(ble_motion_t * p_motion, uint16_t * acceleration_value){
 
-    NRF_LOG_INFO("In ble_motion_custom_value_update. \r\n"); 
+    //NRF_LOG_INFO("In ble_motion_custom_value_update. \r\n"); 
+
+    //Serialize
+    int16_t buffer_serialized[32*3];
+    int16_t (*buff)[3] = acceleration_value;
+    
+    for ( int i = 0 ; i < 32 ; i++ ) 
+    {
+//      NRF_LOG_INFO("Acceleration mG x= %d mg - y= %d mg - z= %d mg", buff[i][0], buff[i][1], buff[i][2]);
+//      NRF_LOG_FLUSH();
+      buffer_serialized[3*i] = buff[i][0];
+      buffer_serialized[(3*i)+1] = buff[i][1];
+      buffer_serialized[(3*i)+2] = buff[i][2];
+    }
+
+//    for ( int i = 0 ; i < 32*3 ; i++ ) 
+//    {
+//      NRF_LOG_INFO("buffer_serialized %d", buffer_serialized[i]);
+//      NRF_LOG_FLUSH();
+//    }
 
     if (p_motion == NULL)
     {
@@ -223,9 +257,9 @@ uint32_t ble_motion_acceleration_value_update(ble_motion_t * p_motion, uint8_t a
     // Initialize value struct.
     memset(&gatts_value, 0, sizeof(gatts_value));
 
-    gatts_value.len     = sizeof(uint8_t);
+    gatts_value.len     = sizeof(uint16_t)*(32*3);
     gatts_value.offset  = 0;
-    gatts_value.p_value = &acceleration_value;
+    gatts_value.p_value = buffer_serialized;
 
     // Update database.
     err_code = sd_ble_gatts_value_set(p_motion->conn_handle,

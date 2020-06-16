@@ -70,6 +70,7 @@
 "Output/ble_app_template_pca10040_s132 Release/Obj/pm_mutex.o"
 "Output/ble_app_template_pca10040_s132 Release/Obj/security_dispatcher.o"
 "Output/ble_app_template_pca10040_s132 Release/Obj/security_manager.o"
+"Output/ble_app_template_pca10040_s132 Release/Obj/ble_radio_notification.o"
 "Output/ble_app_template_pca10040_s132 Release/Obj/nrf_sdh.o"
 "Output/ble_app_template_pca10040_s132 Release/Obj/nrf_sdh_ble.o"
 "Output/ble_app_template_pca10040_s132 Release/Obj/nrf_sdh_soc.o"

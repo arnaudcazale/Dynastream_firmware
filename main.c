@@ -87,6 +87,8 @@
 
 #include "nrf_drv_twi.h"
 
+#include "ble_radio_notification.h"
+
 #define NOTIFICATION_INTERVAL           APP_TIMER_TICKS(1000)
 APP_TIMER_DEF(m_notification_timer_id);
 static uint8_t m_custom_value = 0;
@@ -99,8 +101,8 @@ static uint8_t m_custom_value = 0;
 #define APP_BLE_OBSERVER_PRIO           3                                       /**< Application's BLE observer priority. You shouldn't need to modify this value. */
 #define APP_BLE_CONN_CFG_TAG            1                                       /**< A tag identifying the SoftDevice BLE configuration. */
 
-#define MIN_CONN_INTERVAL               MSEC_TO_UNITS(100, UNIT_1_25_MS)        /**< Minimum acceptable connection interval (0.1 seconds). */
-#define MAX_CONN_INTERVAL               MSEC_TO_UNITS(200, UNIT_1_25_MS)        /**< Maximum acceptable connection interval (0.2 second). */
+#define MIN_CONN_INTERVAL               MSEC_TO_UNITS(20, UNIT_1_25_MS)        /**< Minimum acceptable connection interval (0.1 seconds). */
+#define MAX_CONN_INTERVAL               MSEC_TO_UNITS(30, UNIT_1_25_MS)        /**< Maximum acceptable connection interval (0.2 second). */
 #define SLAVE_LATENCY                   0                                       /**< Slave latency. */
 #define CONN_SUP_TIMEOUT                MSEC_TO_UNITS(4000, UNIT_10_MS)         /**< Connection supervisory timeout (4 seconds). */
 
@@ -130,6 +132,7 @@ BLE_MOTION_DEF(m_motion);
 
 //Buffer filled with lis2dh FIFO contents
 static int16_t m_buffer[32][3];
+bool current_radio_active_state = false;
 
 /* YOUR_JOB: Declare all services structure your application is using
  *  BLE_XYZ_DEF(m_xyz);
@@ -330,6 +333,9 @@ static void gap_params_init(void)
 static void gatt_init(void)
 {
     ret_code_t err_code = nrf_ble_gatt_init(&m_gatt, NULL);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = nrf_ble_gatt_att_mtu_periph_set(&m_gatt, NRF_SDH_BLE_GATT_MAX_MTU_SIZE);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -733,8 +739,8 @@ static void bsp_event_handler(bsp_event_t event)
 
 void INT1_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
-     NRF_LOG_INFO("\r\n----------INT1-----------\r\n");
-     NRF_LOG_FLUSH();
+//     NRF_LOG_INFO("\r\n----------INT1-----------\r\n");
+//     NRF_LOG_FLUSH();
 
     ret_code_t err_code;
 
@@ -749,13 +755,18 @@ void INT1_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
       err_code = lis2dh_mG_conversion(&buff[i][0],&buff[i][1],&buff[i][2]);
       APP_ERROR_CHECK(err_code);
 
-      NRF_LOG_INFO("Acceleration mG x= %d mg - y= %d mg - z= %d mg", buff[i][0], buff[i][1], buff[i][2]);
-      NRF_LOG_FLUSH();
+//      NRF_LOG_INFO("Acceleration mG x= %d mg - y= %d mg - z= %d mg", buff[i][0], buff[i][1], buff[i][2]);
+//      NRF_LOG_FLUSH();
     }
+
+    //Send notification with data converted
+    err_code = ble_motion_acceleration_value_update(&m_motion, m_buffer);
+    APP_ERROR_CHECK(err_code);
 
     //restart FIFO and wait for fifo full
     err_code = lis2dh_fifo_restart();
     APP_ERROR_CHECK(err_code);
+
 }
 
 
@@ -808,7 +819,7 @@ static void buttons_leds_init(bool * p_erase_bonds)
 static void gpio_init(void)
 {
     ret_code_t err_code;
-
+    
     err_code = nrf_drv_gpiote_init();
     APP_ERROR_CHECK(err_code);
 
@@ -840,6 +851,28 @@ static void power_management_init(void)
     err_code = nrf_pwr_mgmt_init();
     APP_ERROR_CHECK(err_code);
 }
+
+
+void ble_on_radio_active_evt(bool radio_active)
+{
+    current_radio_active_state = radio_active;
+    nrf_gpio_pin_toggle(13);
+}
+
+
+static void radio_notification_init(void)
+{
+    uint32_t err_code;
+
+    nrf_gpio_cfg_output(13);
+    nrf_gpio_pin_clear(13);
+
+    err_code = ble_radio_notification_init(APP_IRQ_PRIORITY_HIGH,
+                                           NRF_RADIO_NOTIFICATION_DISTANCE_800US,
+                                           ble_on_radio_active_evt);
+    APP_ERROR_CHECK(err_code);
+}
+
 
 
 /**@brief Function for handling the idle state (main loop).
@@ -888,6 +921,7 @@ int main(void)
     buttons_leds_init(&erase_bonds);
     power_management_init();
     ble_stack_init();
+    radio_notification_init();
     gap_params_init();
     gatt_init();
     services_init();

@@ -6,12 +6,18 @@
 #include "ble.h"
 #include "ble_srv_common.h"
 
+#include "nrf_log.h"
+#include "nrf_log_ctrl.h"
+#include "nrf_log_default_backends.h"
+
 
 #define MOTION_SERVICE_UUID_BASE         {0x04, 0x00, 0x13, 0xAC, 0x42, 0x02, 0xDE, 0xB3, \
                                           0xEA, 0x11, 0xB2, 0xAF, 0x26, 0x31, 0xAC, 0x2B}
 
 #define MOTION_SERVICE_UUID               0x1400
 #define ACCELERATION_VALUE_CHAR_UUID      0x1401
+
+#define NRF_BLE_MAX_MTU_SIZE 247
 
 
 /**@brief   Macro for defining a ble_cus instance.
@@ -105,6 +111,6 @@ static void on_write(ble_motion_t * p_motion, ble_evt_t const * p_ble_evt);
  * @return      NRF_SUCCESS on success, otherwise an error code.
  */
 
-uint32_t ble_motion_acceleration_value_update(ble_motion_t * p_motion, uint8_t acceleration_value);
+uint32_t ble_motion_acceleration_value_update(ble_motion_t * p_motion, uint16_t * acceleration_value);
 
 #endif // BLE_MOTION_H__
