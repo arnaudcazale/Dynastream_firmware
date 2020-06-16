@@ -112,4 +112,15 @@ Output/ble_app_template_pca10040_s132\ Release/Obj/main.o: \
  C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 4.16/include/stdlib.h \
  ../../../../../../components/libraries/balloc/nrf_balloc.h \
  ../../../../../../components/libraries/experimental_log/nrf_log_default_backends.h \
- C:\Nordic\SDK\nRF5_SDK_15.0.0_a53641a\examples\ble_peripheral\ble_app_dynastream52\ble_motion.h
+ C:\Nordic\SDK\nRF5_SDK_15.0.0_a53641a\examples\ble_peripheral\ble_app_dynastream52\ble_motion.h \
+ C:\Nordic\SDK\nRF5_SDK_15.0.0_a53641a\examples\ble_peripheral\ble_app_dynastream52\drv_lis2dh.h \
+ ../../../../../../integration/nrfx/legacy/nrf_drv_twi.h \
+ ../../../../../../modules/nrfx/drivers/include/nrfx_twim.h \
+ ../../../../../../modules/nrfx/hal/nrf_twim.h \
+ ../../../../../../modules/nrfx/drivers/include/nrfx_twi.h \
+ ../../../../../../modules/nrfx/hal/nrf_twi.h \
+ ../../../../../../components/libraries/delay/nrf_delay.h \
+ ../../../../../../integration/nrfx/legacy/nrf_drv_gpiote.h \
+ ../../../../../../modules/nrfx/drivers/include/nrfx_gpiote.h \
+ ../../../../../../modules/nrfx/hal/nrf_gpiote.h \
+ ../../../../../../modules/nrfx/hal/nrf_gpio.h

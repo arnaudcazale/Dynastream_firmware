@@ -82,6 +82,10 @@
 #include "nrf_log_default_backends.h"
 
 #include "ble_motion.h"
+#include "drv_lis2dh.h"
+#include "nrf_drv_gpiote.h"
+
+#include "nrf_drv_twi.h"
 
 #define NOTIFICATION_INTERVAL           APP_TIMER_TICKS(1000)
 APP_TIMER_DEF(m_notification_timer_id);
@@ -123,6 +127,9 @@ BLE_ADVERTISING_DEF(m_advertising);                                             
 static uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID;                        /**< Handle of the current connection. */
 
 BLE_MOTION_DEF(m_motion);
+
+//Buffer filled with lis2dh FIFO contents
+static int16_t m_buffer[32][3];
 
 /* YOUR_JOB: Declare all services structure your application is using
  *  BLE_XYZ_DEF(m_xyz);
@@ -384,13 +391,17 @@ static void on_motion_evt(ble_motion_t     * p_motion_service,
     switch(p_evt->evt_type)
     {
         case BLE_MOTION_EVT_NOTIFICATION_ENABLED:
-          err_code = app_timer_start(m_notification_timer_id, NOTIFICATION_INTERVAL, NULL);
-          APP_ERROR_CHECK(err_code);
+//          err_code = app_timer_start(m_notification_timer_id, NOTIFICATION_INTERVAL, NULL);
+//          APP_ERROR_CHECK(err_code);
+            err_code = lis2dh_init(LIS2DH_RESOLUTION_12B, LIS2DH_ODR_200HZ, LIS2DH_FS_SCALE_2G);
+            APP_ERROR_CHECK(err_code);
             break;
 
         case BLE_MOTION_EVT_NOTIFICATION_DISABLED:
-           err_code = app_timer_stop(m_notification_timer_id);
-           APP_ERROR_CHECK(err_code);
+//           err_code = app_timer_stop(m_notification_timer_id);
+//           APP_ERROR_CHECK(err_code);
+            err_code = lis2dh_init(0x00, LIS2DH_ODR_POWER_DOWN, 0x00);
+            APP_ERROR_CHECK(err_code);
             break;
 
         case BLE_MOTION_EVT_CONNECTED:
@@ -720,6 +731,33 @@ static void bsp_event_handler(bsp_event_t event)
     }
 }
 
+void INT1_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
+{
+     NRF_LOG_INFO("\r\n----------INT1-----------\r\n");
+     NRF_LOG_FLUSH();
+
+    ret_code_t err_code;
+
+    //read FIFO and put contents into m_buffer
+    err_code = lis2dh_read_fifo(m_buffer);
+    APP_ERROR_CHECK(err_code);
+
+    //Convert data to mG
+    int16_t (*buff)[3] = m_buffer;
+    for ( int i = 0 ; i < 32 ; i++ ) 
+    {
+      err_code = lis2dh_mG_conversion(&buff[i][0],&buff[i][1],&buff[i][2]);
+      APP_ERROR_CHECK(err_code);
+
+      NRF_LOG_INFO("Acceleration mG x= %d mg - y= %d mg - z= %d mg", buff[i][0], buff[i][1], buff[i][2]);
+      NRF_LOG_FLUSH();
+    }
+
+    //restart FIFO and wait for fifo full
+    err_code = lis2dh_fifo_restart();
+    APP_ERROR_CHECK(err_code);
+}
+
 
 /**@brief Function for initializing the Advertising functionality.
  */
@@ -767,6 +805,21 @@ static void buttons_leds_init(bool * p_erase_bonds)
     *p_erase_bonds = (startup_event == BSP_EVENT_CLEAR_BONDING_DATA);
 }
 
+static void gpio_init(void)
+{
+    ret_code_t err_code;
+
+    err_code = nrf_drv_gpiote_init();
+    APP_ERROR_CHECK(err_code);
+
+    nrf_drv_gpiote_in_config_t in_config = NRFX_GPIOTE_CONFIG_IN_SENSE_LOTOHI(true);
+    in_config.pull = NRF_GPIO_PIN_PULLUP;
+
+    err_code = nrf_drv_gpiote_in_init(INT1_PIN, &in_config, INT1_handler);
+    APP_ERROR_CHECK(err_code);
+
+    nrf_drv_gpiote_in_event_enable(INT1_PIN, true);
+}
 
 /**@brief Function for initializing the nrf log module.
  */
@@ -826,6 +879,9 @@ int main(void)
 {
     bool erase_bonds;
 
+    twi_init();
+    gpio_init();
+    
     // Initialize.
     log_init();
     timers_init();

@@ -73,7 +73,7 @@ struct ble_motion_s
  *
  * @return      NRF_SUCCESS on successful initialization of service, otherwise an error code.
  */
-uint32_t ble_cus_init(ble_motion_t * p_motion, const ble_motion_init_t * p_motion_init);
+uint32_t ble_motion_init(ble_motion_t * p_motion, const ble_motion_init_t * p_motion_init);
 
 static uint32_t acceleration_value_char_add(ble_motion_t * p_motion, const ble_motion_init_t * p_motion_init);
 
@@ -107,28 +107,4 @@ static void on_write(ble_motion_t * p_motion, ble_evt_t const * p_ble_evt);
 
 uint32_t ble_motion_acceleration_value_update(ble_motion_t * p_motion, uint8_t acceleration_value);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#endif // NORDIC_COMMON_H__
+#endif // BLE_MOTION_H__
