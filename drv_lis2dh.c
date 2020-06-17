@@ -768,7 +768,7 @@ ret_code_t lis2dh_init(int resolution, int frequency, int scale)
         return DRV_ACC_STATUS_WRONG_DEVICE;
     }
 
-    err_code &= lis2dh_reboot();
+    //err_code &= lis2dh_reboot();
 
     err_code &= lis2dh_set_data_rate(frequency);
     err_code &= lis2dh_set_resolution_mode(resolution);
