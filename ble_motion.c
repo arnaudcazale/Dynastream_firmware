@@ -223,7 +223,7 @@ void ble_motion_on_ble_evt( ble_evt_t const * p_ble_evt, void * p_context)
     }
 }
 
-uint32_t ble_motion_acceleration_value_update(ble_motion_t * p_motion, uint16_t * acceleration_value){
+uint32_t ble_motion_acceleration_value_update(ble_motion_t * p_motion, int16_t * acceleration_value){
 
     //NRF_LOG_INFO("In ble_motion_custom_value_update. \r\n"); 
 
@@ -245,6 +245,9 @@ uint32_t ble_motion_acceleration_value_update(ble_motion_t * p_motion, uint16_t 
 //      NRF_LOG_INFO("buffer_serialized %d", buffer_serialized[i]);
 //      NRF_LOG_FLUSH();
 //    }
+//    NRF_LOG_INFO("\r\n");
+//    NRF_LOG_FLUSH();
+
 
     if (p_motion == NULL)
     {

@@ -111,6 +111,6 @@ static void on_write(ble_motion_t * p_motion, ble_evt_t const * p_ble_evt);
  * @return      NRF_SUCCESS on success, otherwise an error code.
  */
 
-uint32_t ble_motion_acceleration_value_update(ble_motion_t * p_motion, uint16_t * acceleration_value);
+uint32_t ble_motion_acceleration_value_update(ble_motion_t * p_motion, int16_t * acceleration_value);
 
 #endif // BLE_MOTION_H__
