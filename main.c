@@ -88,6 +88,11 @@
 #include "nrf_drv_twi.h"
 
 #include "ble_radio_notification.h"
+#include "app_scheduler.h"
+
+// Scheduler settings
+#define SCHED_MAX_EVENT_DATA_SIZE   10
+#define SCHED_QUEUE_SIZE            10
 
 #define NOTIFICATION_INTERVAL           APP_TIMER_TICKS(1000)
 APP_TIMER_DEF(m_notification_timer_id);
@@ -133,6 +138,7 @@ BLE_MOTION_DEF(m_motion);
 //Buffer filled with lis2dh FIFO contents
 static int16_t m_buffer[32][3];
 bool current_radio_active_state = false;
+bool lis2dh_busy = false;
 
 /* YOUR_JOB: Declare all services structure your application is using
  *  BLE_XYZ_DEF(m_xyz);
@@ -269,11 +275,46 @@ static void notification_timeout_handler(void * p_context)
 {
     UNUSED_PARAMETER(p_context);
     ret_code_t err_code;
-    
-    // Increment the value of m_custom_value before nortifing it.
-    m_custom_value++;
-    
-    err_code = ble_motion_acceleration_value_update(&m_motion, m_custom_value);
+   
+}
+
+/**@brief Button handler function to be called by the scheduler.
+ */
+void data_scheduler_event_handler(void *p_event_data, uint16_t event_size)
+{
+//     NRF_LOG_INFO("\r\n----------INT1 sceduled-----------\r\n");
+//     NRF_LOG_FLUSH();
+
+    ret_code_t err_code;
+
+    //read FIFO and put contents into m_buffer
+    err_code = lis2dh_read_fifo(m_buffer);
+    APP_ERROR_CHECK(err_code);
+
+    //Convert data to mG
+    int16_t (*buff)[3] = m_buffer;
+    for ( int i = 0 ; i < 32 ; i++ ) 
+    {
+      err_code = lis2dh_mG_conversion(&buff[i][0],&buff[i][1],&buff[i][2]);
+      APP_ERROR_CHECK(err_code);
+
+//      NRF_LOG_INFO("Acceleration mG x= %d mg - y= %d mg - z= %d mg", buff[i][0], buff[i][1], buff[i][2]);
+//      NRF_LOG_FLUSH();
+    }
+
+    //Send notification with data converted
+    err_code = ble_motion_acceleration_value_update(&m_motion, m_buffer);
+    APP_ERROR_CHECK(err_code);
+
+    //restart FIFO and wait for fifo full
+    err_code = lis2dh_fifo_restart();
+    APP_ERROR_CHECK(err_code);
+}
+
+void ble_evt_scheduler_event_handler(void *p_event_data, uint16_t event_size)
+{
+    ret_code_t err_code;
+    err_code = lis2dh_init(LIS2DH_RESOLUTION_8B, LIS2DH_ODR_POWER_DOWN, LIS2DH_FS_SCALE_2G);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -392,22 +433,17 @@ static void on_motion_evt(ble_motion_t     * p_motion_service,
                           ble_motion_evt_t * p_evt)
 {
     ret_code_t err_code;
-    NRF_LOG_INFO("BLE event received in main. Event type = %d\r\n", p_evt->evt_type); 
+    //NRF_LOG_INFO("BLE event received in main. Event type = %d\r\n", p_evt->evt_type); 
 
     switch(p_evt->evt_type)
     {
         case BLE_MOTION_EVT_NOTIFICATION_ENABLED:
-//          err_code = app_timer_start(m_notification_timer_id, NOTIFICATION_INTERVAL, NULL);
-//          APP_ERROR_CHECK(err_code);
             err_code = lis2dh_init(LIS2DH_RESOLUTION_12B, LIS2DH_ODR_200HZ, LIS2DH_FS_SCALE_2G);
             APP_ERROR_CHECK(err_code);
             break;
 
         case BLE_MOTION_EVT_NOTIFICATION_DISABLED:
-//           err_code = app_timer_stop(m_notification_timer_id);
-//           APP_ERROR_CHECK(err_code);
-            err_code = lis2dh_init(0x00, LIS2DH_ODR_POWER_DOWN, 0x00);
-            APP_ERROR_CHECK(err_code);
+            app_sched_event_put(0, 0, ble_evt_scheduler_event_handler);
             break;
 
         case BLE_MOTION_EVT_CONNECTED:
@@ -739,34 +775,7 @@ static void bsp_event_handler(bsp_event_t event)
 
 void INT1_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
-//     NRF_LOG_INFO("\r\n----------INT1-----------\r\n");
-//     NRF_LOG_FLUSH();
-
-    ret_code_t err_code;
-
-    //read FIFO and put contents into m_buffer
-    err_code = lis2dh_read_fifo(m_buffer);
-    APP_ERROR_CHECK(err_code);
-
-    //Convert data to mG
-    int16_t (*buff)[3] = m_buffer;
-    for ( int i = 0 ; i < 32 ; i++ ) 
-    {
-      err_code = lis2dh_mG_conversion(&buff[i][0],&buff[i][1],&buff[i][2]);
-      APP_ERROR_CHECK(err_code);
-
-//      NRF_LOG_INFO("Acceleration mG x= %d mg - y= %d mg - z= %d mg", buff[i][0], buff[i][1], buff[i][2]);
-//      NRF_LOG_FLUSH();
-    }
-
-    //Send notification with data converted
-    err_code = ble_motion_acceleration_value_update(&m_motion, m_buffer);
-    APP_ERROR_CHECK(err_code);
-
-    //restart FIFO and wait for fifo full
-    err_code = lis2dh_fifo_restart();
-    APP_ERROR_CHECK(err_code);
-
+    app_sched_event_put(0, 0, data_scheduler_event_handler);
 }
 
 
@@ -929,15 +938,24 @@ int main(void)
     conn_params_init();
     peer_manager_init();
 
+    //LIs2dh power-down
+    uint32_t err_code;
+    err_code = lis2dh_init(LIS2DH_RESOLUTION_8B, LIS2DH_ODR_POWER_DOWN, LIS2DH_FS_SCALE_2G);
+    APP_ERROR_CHECK(err_code);
+
     // Start execution.
     NRF_LOG_INFO("Template example started.");
-    application_timers_start();
+
+    APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
+
+    //application_timers_start();
 
     advertising_start(erase_bonds);
 
     // Enter main loop.
     for (;;)
     {
+        app_sched_execute();
         idle_state_handle();
     }
 }

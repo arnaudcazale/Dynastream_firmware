@@ -779,9 +779,8 @@ ret_code_t lis2dh_init(int resolution, int frequency, int scale)
     err_code &= lis2dh_set_fifo_mode(LIS2DH_FM_FIFO);
     APP_ERROR_CHECK(err_code);
    
-    lis2dh_read_settings();
-
-    nrf_delay_ms(10);
+//    lis2dh_read_settings();
+//    nrf_delay_ms(10);
 
     return NRF_SUCCESS;
 }
