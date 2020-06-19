@@ -445,6 +445,12 @@ static void on_motion_evt(ble_motion_t     * p_motion_service,
         case BLE_MOTION_EVT_NOTIFICATION_DISABLED:
             app_sched_event_put(0, 0, ble_evt_scheduler_event_handler);
             break;
+        
+        case BLE_MOTION_EVT_CONFIG_RECEIVED:
+            NRF_LOG_INFO("BLE_MOTION_EVT_CONFIG_RECEIVED");
+            NRF_LOG_INFO("DATA %d %d",p_evt->p_data[0],p_evt->p_data[1]);
+
+            break;
 
         case BLE_MOTION_EVT_CONNECTED:
             break;
@@ -475,9 +481,9 @@ static void services_init(void)
     // Set the cus event handler
     motion_init.evt_handler                = on_motion_evt;
 
-    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&motion_init.motion_value_char_attr_md.cccd_write_perm);
-    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&motion_init.motion_value_char_attr_md.read_perm);
-    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&motion_init.motion_value_char_attr_md.write_perm);
+//    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&motion_init.motion_value_char_attr_md.cccd_write_perm);
+//    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&motion_init.motion_value_char_attr_md.read_perm);
+//    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&motion_init.motion_value_char_attr_md.write_perm);
 	
     err_code = ble_motion_init(&m_motion, &motion_init);
     APP_ERROR_CHECK(err_code);	

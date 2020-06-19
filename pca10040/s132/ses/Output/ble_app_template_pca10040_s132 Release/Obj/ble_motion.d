@@ -68,7 +68,8 @@ Output/ble_app_template_pca10040_s132\ Release/Obj/ble_motion.o: \
  C:/Program\ Files/SEGGER/SEGGER\ Embedded\ Studio\ for\ ARM\ 4.16/include/stdio.h \
  ../../../../../../components/libraries/util/app_error_weak.h \
  ../../../../../../components/libraries/experimental_log/nrf_log_default_backends.h \
- ../../../../../../modules/nrfx/hal/nrf_gpio.h \
+ C:\Nordic\SDK\nRF5_SDK_15.0.0_a53641a\examples\ble_peripheral\ble_app_dynastream52\drv_lis2dh.h \
+ ../../../../../../integration/nrfx/legacy/nrf_drv_twi.h \
  ../../../../../../modules/nrfx/nrfx.h \
  ../../../../../../integration/nrfx/nrfx_config.h \
  ../../../../../../modules/nrfx/drivers/nrfx_common.h \
@@ -83,5 +84,11 @@ Output/ble_app_template_pca10040_s132\ Release/Obj/ble_motion.o: \
  ../../../../../../components/libraries/util/sdk_resources.h \
  ../../../../../../components/softdevice/s132/headers/nrf_sd_def.h \
  ../../../../../../modules/nrfx/drivers/nrfx_errors.h \
+ ../../../../../../modules/nrfx/drivers/include/nrfx_twim.h \
+ ../../../../../../modules/nrfx/hal/nrf_twim.h \
+ ../../../../../../modules/nrfx/drivers/include/nrfx_twi.h \
+ ../../../../../../modules/nrfx/hal/nrf_twi.h \
+ ../../../../../../modules/nrfx/hal/nrf_gpio.h \
+ ../../../../../../components/libraries/delay/nrf_delay.h \
  ../../../../../../components/boards/boards.h \
  ../../../../../../components/boards/pca10040.h

@@ -34,10 +34,72 @@ uint32_t ble_motion_init(ble_motion_t * p_motion, const ble_motion_init_t * p_mo
     {
         return err_code;
     }
+    
+    // Add Custom Value characteristic
+    err_code = configuration_char_add(p_motion, p_motion_init);
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    }
 
     // Add Custom Value characteristic
-    return acceleration_value_char_add(p_motion, p_motion_init);
+    err_code = acceleration_value_char_add(p_motion, p_motion_init);
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    }
+    
+}
 
+static uint32_t configuration_char_add(ble_motion_t * p_motion, const ble_motion_init_t * p_motion_init)
+{
+    uint32_t            err_code;
+    ble_gatts_char_md_t char_md;
+    ble_gatts_attr_t    attr_char_value;
+    ble_uuid_t          ble_uuid;
+    ble_gatts_attr_md_t attr_md;
+
+    memset(&char_md, 0, sizeof(char_md));
+
+    char_md.char_props.read          = 1;
+    char_md.char_props.write         = 1;
+    char_md.char_props.write_wo_resp = 0;
+    char_md.p_char_user_desc         = NULL;
+    char_md.p_char_pf                = NULL;
+    char_md.p_user_desc_md           = NULL;
+    char_md.p_cccd_md                = NULL;
+    char_md.p_sccd_md                = NULL;
+
+    ble_uuid.type = p_motion->uuid_type;
+    ble_uuid.uuid = CONFIGURATION_CHAR_UUID;
+		
+    memset(&attr_md, 0, sizeof(attr_md));
+
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.read_perm);
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.write_perm);
+
+    attr_md.vloc       = BLE_GATTS_VLOC_STACK;
+    attr_md.rd_auth    = 1;
+    attr_md.wr_auth    = 1;
+    attr_md.vlen       = 1;
+
+    memset(&attr_char_value, 0, sizeof(attr_char_value));
+
+    attr_char_value.p_uuid    = &ble_uuid;
+    attr_char_value.p_attr_md = &attr_md;
+    attr_char_value.init_len  = sizeof(ble_motion_config_t);
+    attr_char_value.init_offs = 0;
+    attr_char_value.max_len   = sizeof(ble_motion_config_t);
+
+    err_code = sd_ble_gatts_characteristic_add(p_motion->service_handle, &char_md,
+                                               &attr_char_value,
+                                               &p_motion->configuration_handles);
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    }
+
+    return NRF_SUCCESS;
 }
 
 /**@brief Function for adding the Custom Value characteristic.
@@ -63,13 +125,13 @@ static uint32_t acceleration_value_char_add(ble_motion_t * p_motion, const ble_m
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cccd_md.read_perm);
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cccd_md.write_perm);
     
-    cccd_md.write_perm = p_motion_init->motion_value_char_attr_md.cccd_write_perm;
+    //cccd_md.write_perm = p_motion_init->motion_value_char_attr_md.cccd_write_perm;
     cccd_md.vloc       = BLE_GATTS_VLOC_STACK;
 
     memset(&char_md, 0, sizeof(char_md));
 
-    char_md.char_props.read   = 1;
-    char_md.char_props.write  = 1;
+    char_md.char_props.read   = 0; 
+    char_md.char_props.write  = 0; 
     char_md.char_props.notify = 1; 
     char_md.p_char_user_desc  = NULL;
     char_md.p_char_pf         = NULL;
@@ -82,8 +144,9 @@ static uint32_t acceleration_value_char_add(ble_motion_t * p_motion, const ble_m
 		
     memset(&attr_md, 0, sizeof(attr_md));
 
-    attr_md.read_perm  = p_motion_init->motion_value_char_attr_md.read_perm;
-    attr_md.write_perm = p_motion_init->motion_value_char_attr_md.write_perm;
+    BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&attr_md.read_perm);
+    BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&attr_md.write_perm);
+
     attr_md.vloc       = BLE_GATTS_VLOC_STACK;
     attr_md.rd_auth    = 0;
     attr_md.wr_auth    = 0;
@@ -145,12 +208,6 @@ static void on_write(ble_motion_t * p_motion, ble_evt_t const * p_ble_evt)
 {
     ble_gatts_evt_write_t const * p_evt_write = &p_ble_evt->evt.gatts_evt.params.write;
     
-    // Check if the handle passed with the event matches the Custom Value Characteristic handle.
-    if (p_evt_write->handle == p_motion->acceleration_value_handles.value_handle)
-    {
-        NRF_LOG_INFO("on_write");
-    }
-
     // Check if the Custom value CCCD is written to and that the value is the appropriate length, i.e 2 bytes.
     if ((p_evt_write->handle == p_motion->acceleration_value_handles.cccd_handle)
         && (p_evt_write->len == 2)
@@ -177,12 +234,78 @@ static void on_write(ble_motion_t * p_motion, ble_evt_t const * p_ble_evt)
     }
 }
 
+static void on_autorize_req(ble_motion_t * p_motion, ble_evt_t const * p_ble_evt)
+{
+    
+    ble_gatts_evt_rw_authorize_request_t * p_evt_rw_authorize_request = &p_ble_evt->evt.gatts_evt.params.authorize_request;
+    uint32_t err_code;
+
+    if (p_evt_rw_authorize_request->type  == BLE_GATTS_AUTHORIZE_TYPE_WRITE)
+    {
+      NRF_LOG_INFO("BLE_GATTS_AUTHORIZE_TYPE_WRITE");
+      if (p_evt_rw_authorize_request->request.write.handle == p_motion->configuration_handles.value_handle)
+      {
+        ble_gatts_rw_authorize_reply_params_t rw_authorize_reply;
+        bool                                  valid_data = true;
+        // Check for valid data.
+        if(p_evt_rw_authorize_request->request.write.len != sizeof(ble_motion_config_t))
+        {
+            valid_data = false;
+        }
+        else
+        {
+          ble_motion_config_t * p_config = (ble_motion_config_t *)p_evt_rw_authorize_request->request.write.data;
+           if ( (p_config->scale         > LIS2DH_FS_MAXVALUE)      ||
+                (p_config->resolution    > LIS2DH_RESOLUTION_MAXVALUE) )   
+            {
+              valid_data = false;
+            }
+        }
+
+        rw_authorize_reply.type = BLE_GATTS_AUTHORIZE_TYPE_WRITE;
+
+        if (valid_data)
+        {
+            rw_authorize_reply.params.write.update      = 1;
+            rw_authorize_reply.params.write.gatt_status = BLE_GATT_STATUS_SUCCESS;
+            rw_authorize_reply.params.write.p_data      = p_evt_rw_authorize_request->request.write.data;
+            rw_authorize_reply.params.write.len         = p_evt_rw_authorize_request->request.write.len;
+            rw_authorize_reply.params.write.offset      = p_evt_rw_authorize_request->request.write.offset;
+        }
+        else
+        {
+            rw_authorize_reply.params.write.update      = 0;
+            rw_authorize_reply.params.write.gatt_status = BLE_GATT_STATUS_ATTERR_WRITE_NOT_PERMITTED;
+        }
+
+        err_code = sd_ble_gatts_rw_authorize_reply(p_ble_evt->evt.gatts_evt.conn_handle,
+                                                   &rw_authorize_reply);
+        APP_ERROR_CHECK(err_code);
+
+        if ( valid_data && (p_motion->evt_handler != NULL))
+            {
+                ble_motion_evt_t evt;
+                evt.evt_type = BLE_MOTION_EVT_CONFIG_RECEIVED;
+                evt.p_data = p_evt_rw_authorize_request->request.write.data;
+                evt.length = p_evt_rw_authorize_request->request.write.len;
+                p_motion->evt_handler(p_motion, &evt);
+            }
+      }
+    }
+
+    if (p_evt_rw_authorize_request->type  == BLE_GATTS_AUTHORIZE_TYPE_READ)
+    {
+      NRF_LOG_INFO("BLE_GATTS_AUTHORIZE_TYPE_READ");
+    }
+    
+}
+
 void ble_motion_on_ble_evt( ble_evt_t const * p_ble_evt, void * p_context)
 {
     ret_code_t err_code;
     ble_motion_t * p_motion = (ble_motion_t *) p_context;
 
-    //NRF_LOG_INFO("BLE event received. Event type = 0x%X\r\n", p_ble_evt->header.evt_id); 
+    NRF_LOG_INFO("BLE event received. Event type = 0x%X\r\n", p_ble_evt->header.evt_id); 
     
     if (p_motion == NULL || p_ble_evt == NULL)
     {
@@ -200,22 +323,13 @@ void ble_motion_on_ble_evt( ble_evt_t const * p_ble_evt, void * p_context)
             break;
 
         case BLE_GATTS_EVT_WRITE:
+            NRF_LOG_INFO("BLE_GATTS_EVT_WRITE"); 
             on_write(p_motion, p_ble_evt);
            break;
 
-//        case BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST:
-//        {
-//            NRF_LOG_INFO("on_ble_evt: BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST - %d\r\n", p_ble_evt->evt.gatts_evt.params.exchange_mtu_request.client_rx_mtu);
-//            err_code = sd_ble_gatts_exchange_mtu_reply(p_ble_evt->evt.gatts_evt.conn_handle,
-//                                                       NRF_BLE_MAX_MTU_SIZE);
-//            APP_ERROR_CHECK(err_code);
-//
-// 
-//
-//            m_mtu.size = p_ble_evt->evt.gatts_evt.params.exchange_mtu_request.client_rx_mtu;/            err_code = ble_tcs_mtu_set(&m_tcs, &m_mtu);
-//            APP_ERROR_CHECK(err_code);
-//        }
-//        break; // BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST
+        case BLE_GATTS_EVT_RW_AUTHORIZE_REQUEST:
+            on_autorize_req(p_motion, p_ble_evt);
+           break;
 
         default:
             // No implementation needed.

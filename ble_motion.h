@@ -10,14 +10,32 @@
 #include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
 
+#include "drv_lis2dh.h"
+
 
 #define MOTION_SERVICE_UUID_BASE         {0x04, 0x00, 0x13, 0xAC, 0x42, 0x02, 0xDE, 0xB3, \
                                           0xEA, 0x11, 0xB2, 0xAF, 0x26, 0x31, 0xAC, 0x2B}
 
 #define MOTION_SERVICE_UUID               0x1400
 #define ACCELERATION_VALUE_CHAR_UUID      0x1401
+#define CONFIGURATION_CHAR_UUID           0x1402
 
 #define NRF_BLE_MAX_MTU_SIZE 247
+
+#ifdef __GNUC__
+    #ifdef PACKED
+        #undef PACKED
+    #endif
+
+    #define PACKED(TYPE) TYPE __attribute__ ((packed))
+#endif
+
+typedef PACKED( struct
+{
+    uint8_t                  scale;
+    uint8_t                  resolution;
+   
+}) ble_motion_config_t;
 
 
 /**@brief   Macro for defining a ble_cus instance.
@@ -35,6 +53,7 @@ typedef enum
 {
     BLE_MOTION_EVT_NOTIFICATION_ENABLED,                             /**< Custom value notification enabled event. */
     BLE_MOTION_EVT_NOTIFICATION_DISABLED,                            /**< Custom value notification disabled event. */
+    BLE_MOTION_EVT_CONFIG_RECEIVED,
     BLE_MOTION_EVT_DISCONNECTED,
     BLE_MOTION_EVT_CONNECTED
 } ble_motion_evt_type_t;
@@ -42,7 +61,9 @@ typedef enum
 /**@brief Custom Service event. */
 typedef struct
 {
-    ble_motion_evt_type_t evt_type;                                  /**< Type of event. */
+    ble_motion_evt_type_t evt_type;
+    uint8_t          * p_data;
+    uint16_t           length;
 } ble_motion_evt_t;
 
 // Forward declaration of the ble_cus_t type.
@@ -65,9 +86,11 @@ struct ble_motion_s
 {
     ble_motion_evt_handler_t      evt_handler;                    /**< Event handler to be called for handling events in the Custom Service. */
     uint16_t                      service_handle;                 /**< Handle of Custom Service (as provided by the BLE stack). */
-    ble_gatts_char_handles_t      acceleration_value_handles;           /**< Handles related to the Custom Value characteristic. */
+    ble_gatts_char_handles_t      configuration_handles;          /**< Handles related to the Custom Value characteristic. */
+    ble_gatts_char_handles_t      acceleration_value_handles;     /**< Handles related to the Custom Value characteristic. */
     uint16_t                      conn_handle;                    /**< Handle of the current connection (as provided by the BLE stack, is BLE_CONN_HANDLE_INVALID if not in a connection). */
-    uint8_t                       uuid_type; 
+    uint8_t                       uuid_type;
+    bool                          is_acceleration_notif_enabled; 
 };
 
 /**@brief Function for initializing the Custom Service.
@@ -81,6 +104,7 @@ struct ble_motion_s
  */
 uint32_t ble_motion_init(ble_motion_t * p_motion, const ble_motion_init_t * p_motion_init);
 
+static uint32_t configuration_char_add(ble_motion_t * p_motion, const ble_motion_init_t * p_motion_init);
 static uint32_t acceleration_value_char_add(ble_motion_t * p_motion, const ble_motion_init_t * p_motion_init);
 
 /**@brief Function for handling the Application's BLE Stack events.
