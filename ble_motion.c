@@ -35,13 +35,6 @@ uint32_t ble_motion_init(ble_motion_t * p_motion, const ble_motion_init_t * p_mo
     {
         return err_code;
     }
-    
-    // Add Custom Value characteristic
-    err_code = configuration_char_add(p_motion, p_motion_init);
-    if (err_code != NRF_SUCCESS)
-    {
-        return err_code;
-    }
 
     // Add Custom Value characteristic
     err_code = acceleration_value_char_add(p_motion, p_motion_init);
@@ -50,6 +43,12 @@ uint32_t ble_motion_init(ble_motion_t * p_motion, const ble_motion_init_t * p_mo
         return err_code;
     }
     
+    // Add Custom Value characteristic
+    err_code = configuration_char_add(p_motion, p_motion_init);
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    }
 }
 
 static uint32_t configuration_char_add(ble_motion_t * p_motion, const ble_motion_init_t * p_motion_init)
@@ -59,6 +58,7 @@ static uint32_t configuration_char_add(ble_motion_t * p_motion, const ble_motion
     ble_gatts_attr_t    attr_char_value;
     ble_uuid_t          ble_uuid;
     ble_gatts_attr_md_t attr_md;
+ 
 
     memset(&char_md, 0, sizeof(char_md));
 
@@ -80,7 +80,7 @@ static uint32_t configuration_char_add(ble_motion_t * p_motion, const ble_motion
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.write_perm);
 
     attr_md.vloc       = BLE_GATTS_VLOC_STACK;
-    attr_md.rd_auth    = 1;
+    attr_md.rd_auth    = 0;
     attr_md.wr_auth    = 1;
     attr_md.vlen       = 1;
 
@@ -118,6 +118,7 @@ static uint32_t acceleration_value_char_add(ble_motion_t * p_motion, const ble_m
     ble_gatts_attr_t    attr_char_value;
     ble_uuid_t          ble_uuid;
     ble_gatts_attr_md_t attr_md;
+    uint8_t             data = {0};
 
     // Add Custom Value characteristic
     memset(&cccd_md, 0, sizeof(cccd_md));
@@ -131,8 +132,8 @@ static uint32_t acceleration_value_char_add(ble_motion_t * p_motion, const ble_m
 
     memset(&char_md, 0, sizeof(char_md));
 
-    char_md.char_props.read   = 0; 
-    char_md.char_props.write  = 0; 
+    //char_md.char_props.read   = 0; 
+    //char_md.char_props.write  = 0; 
     char_md.char_props.notify = 1; 
     char_md.p_char_user_desc  = NULL;
     char_md.p_char_pf         = NULL;
@@ -159,6 +160,7 @@ static uint32_t acceleration_value_char_add(ble_motion_t * p_motion, const ble_m
     attr_char_value.p_attr_md = &attr_md;
     attr_char_value.init_len  = sizeof(uint8_t);
     attr_char_value.init_offs = 0;
+    attr_char_value.p_value   = (uint8_t *)&data;
     attr_char_value.max_len   = sizeof(uint16_t)*32*3;
 
     err_code = sd_ble_gatts_characteristic_add(p_motion->service_handle, &char_md,
