@@ -776,11 +776,11 @@ ret_code_t lis2dh_init(int resolution, int frequency, int scale)
     err_code &= lis2dh_enable_INT1_overrun(true);
     err_code &= lis2dh_enable_fifo(true);
     err_code &= lis2dh_set_fifo_mode(LIS2DH_FM_BYPASS);
-    err_code &= lis2dh_set_fifo_mode(LIS2DH_FM_FIFO);
+    //err_code &= lis2dh_set_fifo_mode(LIS2DH_FM_FIFO);
     APP_ERROR_CHECK(err_code);
    
-//    lis2dh_read_settings();
-//    nrf_delay_ms(10);
+    lis2dh_read_settings();
+    nrf_delay_ms(10);
 
     return NRF_SUCCESS;
 }
@@ -799,4 +799,66 @@ uint8_t lis2dh_fifo_restart(void)
     APP_ERROR_CHECK(err_code);
 
     return NRF_SUCCESS;
+}
+
+uint32_t lis2dh_config(lis2dh_cfg_t * p_cfg)
+{
+    uint32_t err_code;
+
+    if (p_cfg == NULL)
+    {
+        return NRF_ERROR_NULL;
+    }
+
+    m_lis2dh.resolution      = p_cfg->resolution;
+    m_lis2dh.frequency       = p_cfg->frequency;
+    m_lis2dh.scale           = p_cfg->scale;
+
+    NRF_LOG_INFO("resolution: %d, frequency: %d, scale: %d", m_lis2dh.resolution, m_lis2dh.frequency, m_lis2dh.scale);
+    NRF_LOG_FLUSH();
+
+//    if (m_lis2dh.running)
+//    {
+//        err_code = lis2dh_disable();
+//        APP_ERROR_CHECK(err_code);
+//
+//        err_code = lis2dh_init(m_lis2dh.resolution, m_lis2dh.frequency, m_lis2dh.scale);
+//        APP_ERROR_CHECK(err_code);
+//
+//        //return lis2dh_enable();
+//    }
+//    else
+//    {
+//        return NRF_SUCCESS;
+//    }
+
+    return NRF_SUCCESS;
+}
+
+ret_code_t lis2dh_enable()
+{
+    ret_code_t err_code;
+
+    NRF_LOG_INFO("resolution: %d, frequency: %d, scale: %d", m_lis2dh.resolution, m_lis2dh.frequency, m_lis2dh.scale);
+    NRF_LOG_FLUSH();
+
+    err_code = lis2dh_init(m_lis2dh.resolution, m_lis2dh.frequency, m_lis2dh.scale);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = lis2dh_set_fifo_mode(LIS2DH_FM_FIFO);
+    APP_ERROR_CHECK(err_code);
+
+    m_lis2dh.running = true;
+    
+    return NRF_SUCCESS;
+}
+
+ret_code_t lis2dh_disable()
+{
+    ret_code_t err_code;
+
+    err_code = lis2dh_init(LIS2DH_RESOLUTION_8B, LIS2DH_ODR_POWER_DOWN, LIS2DH_FS_SCALE_2G);
+    APP_ERROR_CHECK(err_code);
+
+    m_lis2dh.running = false;
 }

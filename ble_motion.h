@@ -32,8 +32,9 @@
 
 typedef PACKED( struct
 {
-    uint8_t                  scale;
     uint8_t                  resolution;
+    uint8_t                  frequency;
+    uint8_t                  scale;
    
 }) ble_motion_config_t;
 
@@ -121,6 +122,10 @@ void ble_motion_on_ble_evt( ble_evt_t const * p_ble_evt, void * p_context);
 static void on_connect(ble_motion_t * p_motion, ble_evt_t const * p_ble_evt);
 static void on_disconnect(ble_motion_t * p_motion, ble_evt_t const * p_ble_evt);
 static void on_write(ble_motion_t * p_motion, ble_evt_t const * p_ble_evt);
+
+uint32_t m_motion_configuration_apply(ble_motion_config_t * p_config);
+
+uint32_t m_motion_configuration_default_init();
 
 /**@brief Function for updating the custom value.
  *

@@ -6,6 +6,7 @@
 #include "boards.h"
 #include "nrf_log.h"
 
+
 uint32_t ble_motion_init(ble_motion_t * p_motion, const ble_motion_init_t * p_motion_init)
 {
     if (p_motion == NULL || p_motion_init == NULL)
@@ -255,8 +256,9 @@ static void on_autorize_req(ble_motion_t * p_motion, ble_evt_t const * p_ble_evt
         else
         {
           ble_motion_config_t * p_config = (ble_motion_config_t *)p_evt_rw_authorize_request->request.write.data;
-           if ( (p_config->scale         > LIS2DH_FS_MAXVALUE)      ||
-                (p_config->resolution    > LIS2DH_RESOLUTION_MAXVALUE) )   
+           if ( (p_config->resolution    > LIS2DH_RESOLUTION_MAXVALUE) ||
+                (p_config->frequency     > LIS2DH_ODR_MAXVALUE)        ||
+                (p_config->scale         > LIS2DH_FS_MAXVALUE) )   
             {
               valid_data = false;
             }
@@ -410,3 +412,38 @@ uint32_t ble_motion_acceleration_value_update(ble_motion_t * p_motion, int16_t *
     return err_code;
 }
 
+uint32_t m_motion_configuration_apply(ble_motion_config_t * p_config)
+{
+    uint32_t err_code;
+    lis2dh_cfg_t motion_cfg;
+
+    if (p_config == NULL)
+    {
+        return NRF_ERROR_NULL;
+    }
+
+    motion_cfg.resolution    = p_config->resolution;
+    motion_cfg.frequency    = p_config->frequency;
+    motion_cfg.scale         = p_config->scale;
+
+    err_code = lis2dh_config(&motion_cfg);
+    APP_ERROR_CHECK(err_code);
+
+    return NRF_SUCCESS;
+}
+
+uint32_t m_motion_configuration_default_init()
+{
+    uint32_t err_code;
+
+    lis2dh_cfg_t motion_cfg;
+
+    motion_cfg.scale         = LIS2DH_FS_SCALE_2G;
+    motion_cfg.resolution    = LIS2DH_RESOLUTION_12B;
+    motion_cfg.frequency     = LIS2DH_ODR_200HZ;
+
+    err_code = lis2dh_config(&motion_cfg);
+    APP_ERROR_CHECK(err_code);
+
+    return NRF_SUCCESS;
+}

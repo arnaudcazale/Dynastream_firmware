@@ -105,6 +105,23 @@ enum
 #define SDA 29
 #define SCL 30
 
+/**@brief Motion configuration struct.
+ */
+ typedef struct
+{
+    uint8_t scale;
+    uint8_t resolution;
+    uint8_t frequency;
+}lis2dh_cfg_t;
+
+static struct
+{
+    uint8_t scale; 
+    uint8_t resolution;
+    uint8_t frequency;
+    bool    running;
+}m_lis2dh;
+
 static uint8_t m_scale;
 static uint8_t m_resolution;
 static uint8_t m_frequency;
@@ -180,6 +197,12 @@ ret_code_t lis2dh_init(int resolution, int frequency, int scale);
 void twi_init (void);
 
 uint8_t lis2dh_fifo_restart(void) ;
+
+uint32_t li2dh_config(lis2dh_cfg_t * p_cfg);
+
+ret_code_t lis2dh_enable();
+
+ret_code_t lis2dh_disable();
 
 
 

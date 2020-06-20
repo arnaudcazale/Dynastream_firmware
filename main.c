@@ -138,7 +138,7 @@ BLE_MOTION_DEF(m_motion);
 //Buffer filled with lis2dh FIFO contents
 static int16_t m_buffer[32][3];
 bool current_radio_active_state = false;
-bool lis2dh_busy = false;
+
 
 /* YOUR_JOB: Declare all services structure your application is using
  *  BLE_XYZ_DEF(m_xyz);
@@ -314,7 +314,8 @@ void data_scheduler_event_handler(void *p_event_data, uint16_t event_size)
 void ble_evt_scheduler_event_handler(void *p_event_data, uint16_t event_size)
 {
     ret_code_t err_code;
-    err_code = lis2dh_init(LIS2DH_RESOLUTION_8B, LIS2DH_ODR_POWER_DOWN, LIS2DH_FS_SCALE_2G);
+    //err_code = lis2dh_init(LIS2DH_RESOLUTION_8B, LIS2DH_ODR_POWER_DOWN, LIS2DH_FS_SCALE_2G);
+    err_code = lis2dh_disable();
     APP_ERROR_CHECK(err_code);
 }
 
@@ -438,7 +439,7 @@ static void on_motion_evt(ble_motion_t     * p_motion_service,
     switch(p_evt->evt_type)
     {
         case BLE_MOTION_EVT_NOTIFICATION_ENABLED:
-            err_code = lis2dh_init(LIS2DH_RESOLUTION_12B, LIS2DH_ODR_200HZ, LIS2DH_FS_SCALE_2G);
+            err_code = lis2dh_enable();
             APP_ERROR_CHECK(err_code);
             break;
 
@@ -447,9 +448,8 @@ static void on_motion_evt(ble_motion_t     * p_motion_service,
             break;
         
         case BLE_MOTION_EVT_CONFIG_RECEIVED:
-            NRF_LOG_INFO("BLE_MOTION_EVT_CONFIG_RECEIVED");
-            NRF_LOG_INFO("DATA %d %d",p_evt->p_data[0],p_evt->p_data[1]);
-
+            err_code = m_motion_configuration_apply((ble_motion_config_t *)p_evt->p_data);
+            APP_ERROR_CHECK(err_code);
             break;
 
         case BLE_MOTION_EVT_CONNECTED:
@@ -946,7 +946,11 @@ int main(void)
 
     //LIs2dh power-down
     uint32_t err_code;
+
     err_code = lis2dh_init(LIS2DH_RESOLUTION_8B, LIS2DH_ODR_POWER_DOWN, LIS2DH_FS_SCALE_2G);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = m_motion_configuration_default_init();
     APP_ERROR_CHECK(err_code);
 
     // Start execution.
