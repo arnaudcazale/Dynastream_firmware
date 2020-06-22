@@ -947,6 +947,7 @@ int main(void)
     //LIs2dh power-down
     uint32_t err_code;
 
+    NRF_LOG_INFO("Lis2dh power-down");
     err_code = lis2dh_init(LIS2DH_RESOLUTION_8B, LIS2DH_ODR_POWER_DOWN, LIS2DH_FS_SCALE_2G);
     APP_ERROR_CHECK(err_code);
 

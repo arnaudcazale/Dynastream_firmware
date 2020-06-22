@@ -562,46 +562,21 @@ ret_code_t lis2dh_reboot()
 void lis2dh_read_settings() 
 {
   uint8_t data;
-  data = lis2dh_get_acceleration_scale();
-  
-  switch(data)
-  {
-    case LIS2DH_FS_SCALE_2G:
-        NRF_LOG_INFO("Scale : 2G\r\n");
-        NRF_LOG_FLUSH();
-        break;
-
-    case LIS2DH_FS_SCALE_4G:
-        NRF_LOG_INFO("Scale : 4G\r\n");
-        NRF_LOG_FLUSH();
-        break;
-
-    case LIS2DH_FS_SCALE_8G:
-        NRF_LOG_INFO("Scale : 8G\r\n");
-        NRF_LOG_FLUSH();
-        break;
-
-    case LIS2DH_FS_SCALE_16G:
-        NRF_LOG_INFO("Scale : 16G\r\n");
-        NRF_LOG_FLUSH();
-        break;
-  }
-
   data = lis2dh_get_resolution_mode();
   switch(data)
   {
     case LIS2DH_RESOLUTION_8B:
-        NRF_LOG_INFO("Resolution : 8B\r\n");
+        NRF_LOG_INFO("Resolution : 8B");
         NRF_LOG_FLUSH();
         break;
 
     case LIS2DH_RESOLUTION_10B:
-        NRF_LOG_INFO("Resolution : 10B\r\n");
+        NRF_LOG_INFO("Resolution : 10B ");
         NRF_LOG_FLUSH();
         break;
 
     case LIS2DH_RESOLUTION_12B:
-        NRF_LOG_INFO("Resolution : 12B\r\n");
+        NRF_LOG_INFO("Resolution : 12B ");
         NRF_LOG_FLUSH();
         break;
   }
@@ -610,52 +585,77 @@ void lis2dh_read_settings()
   switch(data)
   {
     case LIS2DH_ODR_1HZ:
-        NRF_LOG_INFO("Frequency : 1Hz\r\n");
+        NRF_LOG_INFO("Frequency : 1Hz ");
         NRF_LOG_FLUSH();
         break;
 
     case LIS2DH_ODR_10HZ:
-        NRF_LOG_INFO("Frequency : 10Hz\r\n");
+        NRF_LOG_INFO("Frequency : 10Hz ");
         NRF_LOG_FLUSH();
         break;
 
     case LIS2DH_ODR_25HZ:
-        NRF_LOG_INFO("Frequency : 25Hz\r\n");
+        NRF_LOG_INFO("Frequency : 25Hz ");
         NRF_LOG_FLUSH();
         break;
 
     case LIS2DH_ODR_50HZ:
-        NRF_LOG_INFO("Frequency : 50Hz\r\n");
+        NRF_LOG_INFO("Frequency : 50Hz ");
         NRF_LOG_FLUSH();
         break;
 
     case LIS2DH_ODR_100HZ:
-        NRF_LOG_INFO("Frequency : 100Hz\r\n");
+        NRF_LOG_INFO("Frequency : 100Hz ");
         NRF_LOG_FLUSH();
         break;
 
     case LIS2DH_ODR_200HZ:
-        NRF_LOG_INFO("Frequency : 200Hz\r\n");
+        NRF_LOG_INFO("Frequency : 200Hz ");
         NRF_LOG_FLUSH();
         break;
 
     case LIS2DH_ODR_400HZ:
-        NRF_LOG_INFO("Frequency : 400Hz\r\n");
+        NRF_LOG_INFO("Frequency : 400Hz ");
         NRF_LOG_FLUSH();
         break;
 
     case LIS2DH_ODR_1620HZ:
-        NRF_LOG_INFO("Frequency : 1620Hz\r\n");
+        NRF_LOG_INFO("Frequency : 1620Hz ");
         NRF_LOG_FLUSH();
         break;
 
     case LIS2DH_ODR_1344HZ:
-        NRF_LOG_INFO("Frequency : 1344Hz\r\n");
+        NRF_LOG_INFO("Frequency : 1344Hz ");
         NRF_LOG_FLUSH();
         break;
 
     case LIS2DH_ODR_5376HZ:
-        NRF_LOG_INFO("Resolution : 5376Hz\r\n");
+        NRF_LOG_INFO("Resolution : 5376Hz ");
+        NRF_LOG_FLUSH();
+        break;
+  }
+
+  data = lis2dh_get_acceleration_scale();
+  
+  switch(data)
+  {
+    case LIS2DH_FS_SCALE_2G:
+        NRF_LOG_INFO("Scale: 2G ");
+        NRF_LOG_FLUSH();
+        break;
+
+    case LIS2DH_FS_SCALE_4G:
+        NRF_LOG_INFO("Scale: 4G ");
+        NRF_LOG_FLUSH();
+        break;
+
+    case LIS2DH_FS_SCALE_8G:
+        NRF_LOG_INFO("Scale: 8G ");
+        NRF_LOG_FLUSH();
+        break;
+
+    case LIS2DH_FS_SCALE_16G:
+        NRF_LOG_INFO("Scale: 16G ");
         NRF_LOG_FLUSH();
         break;
   }
@@ -664,22 +664,22 @@ void lis2dh_read_settings()
   switch(data)
   {
     case LIS2DH_FM_BYPASS:
-        NRF_LOG_INFO("FiFo Mode : BYPASS\r\n");
+        NRF_LOG_INFO("FiFo Mode : BYPASS \r\n");
         NRF_LOG_FLUSH();
         break;
 
     case LIS2DH_FM_FIFO:
-        NRF_LOG_INFO("FiFo Mode : FIFO\r\n");
+        NRF_LOG_INFO("FiFo Mode : FIFO \r\n ");
         NRF_LOG_FLUSH();
         break;
 
     case LIS2DH_FM_STREAM:
-        NRF_LOG_INFO("FiFo Mode : STREAM\r\n");
+        NRF_LOG_INFO("FiFo Mode : STREAM \r\n");
         NRF_LOG_FLUSH();
         break;
 
     case LIS2DH_FM_STREAMFIFO:
-        NRF_LOG_INFO("FiFo Mode : STREAMFIFO\r\n");
+        NRF_LOG_INFO("FiFo Mode : STREAMFIFO \r\n");
         NRF_LOG_FLUSH();
         break;
 
@@ -779,8 +779,8 @@ ret_code_t lis2dh_init(int resolution, int frequency, int scale)
     //err_code &= lis2dh_set_fifo_mode(LIS2DH_FM_FIFO);
     APP_ERROR_CHECK(err_code);
    
-    lis2dh_read_settings();
-    nrf_delay_ms(10);
+    //lis2dh_read_settings();
+    //nrf_delay_ms(10);
 
     return NRF_SUCCESS;
 }
@@ -814,23 +814,10 @@ uint32_t lis2dh_config(lis2dh_cfg_t * p_cfg)
     m_lis2dh.frequency       = p_cfg->frequency;
     m_lis2dh.scale           = p_cfg->scale;
 
-    NRF_LOG_INFO("resolution: %d, frequency: %d, scale: %d", m_lis2dh.resolution, m_lis2dh.frequency, m_lis2dh.scale);
+    NRF_LOG_INFO("lis2dh config_default");
     NRF_LOG_FLUSH();
-
-//    if (m_lis2dh.running)
-//    {
-//        err_code = lis2dh_disable();
-//        APP_ERROR_CHECK(err_code);
-//
-//        err_code = lis2dh_init(m_lis2dh.resolution, m_lis2dh.frequency, m_lis2dh.scale);
-//        APP_ERROR_CHECK(err_code);
-//
-//        //return lis2dh_enable();
-//    }
-//    else
-//    {
-//        return NRF_SUCCESS;
-//    }
+    NRF_LOG_INFO("resolution: %d, frequency: %d, scale: %d \r\n", m_lis2dh.resolution, m_lis2dh.frequency, m_lis2dh.scale);
+    NRF_LOG_FLUSH();
 
     return NRF_SUCCESS;
 }
@@ -839,6 +826,8 @@ ret_code_t lis2dh_enable()
 {
     ret_code_t err_code;
 
+    NRF_LOG_INFO("lis2dh enable \n");
+    NRF_LOG_FLUSH();
     NRF_LOG_INFO("resolution: %d, frequency: %d, scale: %d", m_lis2dh.resolution, m_lis2dh.frequency, m_lis2dh.scale);
     NRF_LOG_FLUSH();
 

@@ -245,7 +245,7 @@ static void on_autorize_req(ble_motion_t * p_motion, ble_evt_t const * p_ble_evt
 
     if (p_evt_rw_authorize_request->type  == BLE_GATTS_AUTHORIZE_TYPE_WRITE)
     {
-      NRF_LOG_INFO("BLE_GATTS_AUTHORIZE_TYPE_WRITE");
+      //NRF_LOG_INFO("BLE_GATTS_AUTHORIZE_TYPE_WRITE");
       if (p_evt_rw_authorize_request->request.write.handle == p_motion->configuration_handles.value_handle)
       {
         ble_gatts_rw_authorize_reply_params_t rw_authorize_reply;
@@ -309,7 +309,7 @@ void ble_motion_on_ble_evt( ble_evt_t const * p_ble_evt, void * p_context)
     ret_code_t err_code;
     ble_motion_t * p_motion = (ble_motion_t *) p_context;
 
-    NRF_LOG_INFO("BLE event received. Event type = 0x%X\r\n", p_ble_evt->header.evt_id); 
+    //NRF_LOG_INFO("BLE event received. Event type = 0x%X\r\n", p_ble_evt->header.evt_id); 
     
     if (p_motion == NULL || p_ble_evt == NULL)
     {
@@ -327,7 +327,7 @@ void ble_motion_on_ble_evt( ble_evt_t const * p_ble_evt, void * p_context)
             break;
 
         case BLE_GATTS_EVT_WRITE:
-            NRF_LOG_INFO("BLE_GATTS_EVT_WRITE"); 
+            //NRF_LOG_INFO("BLE_GATTS_EVT_WRITE"); 
             on_write(p_motion, p_ble_evt);
            break;
 
