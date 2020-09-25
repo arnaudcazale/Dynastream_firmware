@@ -30,7 +30,6 @@ uint32_t ble_motion_init(ble_motion_t * p_motion, const ble_motion_init_t * p_mo
     ble_uuid.uuid = MOTION_SERVICE_UUID;
 
 
-
     // Add the Custom Service
     err_code = sd_ble_gatts_service_add(BLE_GATTS_SRVC_TYPE_PRIMARY, &ble_uuid, &p_motion->service_handle);
     if (err_code != NRF_SUCCESS)
@@ -60,7 +59,6 @@ static uint32_t configuration_char_add(ble_motion_t * p_motion, const ble_motion
     ble_gatts_attr_t    attr_char_value;
     ble_uuid_t          ble_uuid;
     ble_gatts_attr_md_t attr_md;
- 
 
     memset(&char_md, 0, sizeof(char_md));
 
@@ -92,6 +90,7 @@ static uint32_t configuration_char_add(ble_motion_t * p_motion, const ble_motion
     attr_char_value.p_attr_md = &attr_md;
     attr_char_value.init_len  = sizeof(ble_motion_config_t);
     attr_char_value.init_offs = 0;
+    attr_char_value.p_value   = &p_motion_init->initial_motion_value;
     attr_char_value.max_len   = sizeof(ble_motion_config_t);
 
     err_code = sd_ble_gatts_characteristic_add(p_motion->service_handle, &char_md,

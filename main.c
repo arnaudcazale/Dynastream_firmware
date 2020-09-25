@@ -481,14 +481,10 @@ static void services_init(void)
     // Set the cus event handler
     motion_init.evt_handler                = on_motion_evt;
 
-    motion_init.initial_motion_value.scale = LIS2DH_FS_SCALE_2G;
+    motion_init.initial_motion_value.scale      = LIS2DH_FS_SCALE_2G;
     motion_init.initial_motion_value.resolution = LIS2DH_RESOLUTION_12B;
-    motion_init.initial_motion_value.frequency = LIS2DH_ODR_200HZ;
+    motion_init.initial_motion_value.frequency  = LIS2DH_ODR_200HZ;
 
-//    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&motion_init.motion_value_char_attr_md.cccd_write_perm);
-//    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&motion_init.motion_value_char_attr_md.read_perm);
-//    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&motion_init.motion_value_char_attr_md.write_perm);
-	
     err_code = ble_motion_init(&m_motion, &motion_init);
     APP_ERROR_CHECK(err_code);	
     
