@@ -848,6 +848,8 @@ ret_code_t lis2dh_disable()
 
     err_code = lis2dh_init(LIS2DH_RESOLUTION_8B, LIS2DH_ODR_POWER_DOWN, LIS2DH_FS_SCALE_2G);
     APP_ERROR_CHECK(err_code);
+    NRF_LOG_INFO("lis2dh disable \n");
+    NRF_LOG_FLUSH();
 
     m_lis2dh.running = false;
 }

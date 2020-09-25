@@ -470,7 +470,7 @@ static void services_init(void)
 {
     ret_code_t             err_code;
     nrf_ble_qwr_init_t     qwr_init = {0};
-    ble_motion_init_t      motion_init = {0};
+    ble_motion_init_t      motion_init;
 
     // Initialize Queued Write Module.
     qwr_init.error_handler = nrf_qwr_error_handler;
@@ -480,6 +480,10 @@ static void services_init(void)
 
     // Set the cus event handler
     motion_init.evt_handler                = on_motion_evt;
+
+    motion_init.initial_motion_value.scale = LIS2DH_FS_SCALE_2G;
+    motion_init.initial_motion_value.resolution = LIS2DH_RESOLUTION_12B;
+    motion_init.initial_motion_value.frequency = LIS2DH_ODR_200HZ;
 
 //    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&motion_init.motion_value_char_attr_md.cccd_write_perm);
 //    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&motion_init.motion_value_char_attr_md.read_perm);

@@ -29,6 +29,8 @@ uint32_t ble_motion_init(ble_motion_t * p_motion, const ble_motion_init_t * p_mo
     ble_uuid.type = p_motion->uuid_type;
     ble_uuid.uuid = MOTION_SERVICE_UUID;
 
+
+
     // Add the Custom Service
     err_code = sd_ble_gatts_service_add(BLE_GATTS_SRVC_TYPE_PRIMARY, &ble_uuid, &p_motion->service_handle);
     if (err_code != NRF_SUCCESS)

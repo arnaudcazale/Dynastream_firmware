@@ -78,7 +78,7 @@ typedef void (*ble_motion_evt_handler_t) (ble_motion_t * p_motion, ble_motion_ev
 typedef struct
 {
     ble_motion_evt_handler_t      evt_handler;                    /**< Event handler to be called for handling events in the Custom Service. */
-    uint8_t                       initial_motion_value;           /**< Initial custom value */
+    ble_motion_config_t           initial_motion_value;           /**< Initial custom value */
     ble_srv_cccd_security_mode_t  motion_value_char_attr_md;     /**< Initial security level for Custom characteristics attribute */
 } ble_motion_init_t;
 
